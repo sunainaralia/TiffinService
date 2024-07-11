@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserProfile, UserAddress, BusinessProfile
+from .models import UserProfile, UserAddress, BusinessProfile,OperatingHours
 
 
 # userprofile serializer
@@ -69,3 +69,9 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "twitter_link",
             "instagram_link",
         ]
+
+ # oprating hours serializer
+class OperatingHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperatingHours
+        fields = "__all__"

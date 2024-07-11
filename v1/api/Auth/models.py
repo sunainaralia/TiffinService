@@ -58,3 +58,17 @@ class BusinessProfile(models.Model):
 
     def __str__(self):
         return f"{self.kitchenName} - {self.businessEmail}"
+
+
+# models for oprating hours
+class OperatingHours(models.Model):
+    kitchen_id = models.ForeignKey(
+        BusinessProfile, related_name="operating_hours", on_delete=models.CASCADE
+    )
+    monday = models.CharField(max_length=20)
+    tuesday = models.CharField(max_length=20)
+    wednesday = models.CharField(max_length=20)
+    thursday = models.CharField(max_length=20)
+    friday = models.CharField(max_length=20)
+    saturday = models.CharField(max_length=20)
+    sunday = models.CharField(max_length=20)

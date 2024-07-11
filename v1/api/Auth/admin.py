@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, UserAddress,BusinessProfile
+from .models import UserProfile, UserAddress, BusinessProfile, OperatingHours
 
 
 # user profile admin
@@ -36,9 +36,12 @@ class AddressAdmin(admin.ModelAdmin):
         "city",
         "state",
         "pincode",
-        "country"
+        "country",
     ]
-admin.site.register(UserAddress,AddressAdmin)
+
+
+admin.site.register(UserAddress, AddressAdmin)
+
 
 # admin for business profile
 class BusinessProfileAdmin(admin.ModelAdmin):
@@ -62,3 +65,21 @@ class BusinessProfileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BusinessProfile, BusinessProfileAdmin)
+
+
+# admin for oprating hours
+class OperatingHoursAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "kitchen_id",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    )
+
+
+admin.site.register(OperatingHours, OperatingHoursAdmin)

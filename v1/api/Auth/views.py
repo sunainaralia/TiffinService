@@ -1,5 +1,5 @@
-from .models import UserProfile,UserAddress,BusinessProfile
-from .serializers import UserProfileSerializer, UserLoginSerializer, AddressSerializer,BusinessProfileSerializer
+from .models import UserProfile,UserAddress,BusinessProfile,OperatingHours
+from .serializers import UserProfileSerializer, UserLoginSerializer, AddressSerializer,BusinessProfileSerializer,OperatingHoursSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -246,7 +246,7 @@ class AddressView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-# view for business profile 
+# view for business profile
 class BusinessProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -379,3 +379,153 @@ class BusinessProfileView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+
+# oprating hours view
+class OperatingHoursView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        serializer = OperatingHoursSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Operating hours created successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_201_CREATED,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def get(self, request, pk=None, format=None):
+        if pk:
+            try:
+                operating_hours = OperatingHours.objects.get(pk=pk)
+                serializer = OperatingHoursSerializer(operating_hours)
+                return Response(
+                    {
+                        "success": True,
+                        "msg": "Operating hours retrieved successfully.",
+                        "data": serializer.data,
+                        "status": status.HTTP_200_OK,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except OperatingHours.DoesNotExist:
+                return Response(
+                    {
+                        "success": False,
+                        "msg": "Operating hours not found.",
+                        "status": status.HTTP_404_NOT_FOUND,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            operating_hours = OperatingHours.objects.all()
+            serializer = OperatingHoursSerializer(operating_hours, many=True)
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Operating hours retrieved successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+    def patch(self, request, pk, format=None):
+        try:
+            operating_hours = OperatingHours.objects.get(pk=pk)
+        except OperatingHours.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Operating hours not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = OperatingHoursSerializer(
+            operating_hours, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Operating hours updated successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, pk, format=None):
+        try:
+            operating_hours = OperatingHours.objects.get(pk=pk)
+            operating_hours.delete()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Operating hours deleted successfully.",
+                    "status": status.HTTP_204_NO_CONTENT,
+                },
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except OperatingHours.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Operating hours not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+# logout user
+# class LogoutView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, format=None):
+#         try:
+#             refresh_token = request.data["refresh"]
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
+#             return Response(
+#                 {
+#                     "success": True,
+#                     "msg": "Logged out successfully.",
+#                     "status": status.HTTP_200_OK,
+#                 },
+#                 status=status.HTTP_200_OK,
+#             )
+#         except Exception as e:
+#             return Response(
+#                 {
+#                     "success": False,
+#                     "msg": "Logout failed. Invalid token.",
+#                     "status": status.HTTP_400_BAD_REQUEST,
+#                 },
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
