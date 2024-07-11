@@ -6,3 +6,5 @@ urlpatterns = [
         "user/",include("v1.api.Auth.urls")
     ),
 ]
+
+
