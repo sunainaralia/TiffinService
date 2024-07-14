@@ -2,16 +2,18 @@ from .models import UserProfile,UserAddress,BusinessProfile,OperatingHours
 from .serializers import UserProfileSerializer, UserLoginSerializer, AddressSerializer,BusinessProfileSerializer,OperatingHoursSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework import status
 import random
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
-
+from ...customPermission import IsAuthenticatedOrAllowedGet
 # genrate token manually
-def get_token_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {"access": str(refresh.access_token), "refress": str(refresh)}
+def get_token_for_user(user_profile):
+    refresh = RefreshToken()
+    refresh["username"] = user_profile.username
+    refresh["user_id"] = str(user_profile.id)
+    return {"access": str(refresh.access_token), "refresh": str(refresh)}
 
 
 # UserProfile view
@@ -504,28 +506,48 @@ class OperatingHoursView(APIView):
 
 
 # logout user
-# class LogoutView(APIView):
-#     permission_classes = [IsAuthenticated]
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-#     def post(self, request, format=None):
-#         try:
-#             refresh_token = request.data["refresh"]
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
-#             return Response(
-#                 {
-#                     "success": True,
-#                     "msg": "Logged out successfully.",
-#                     "status": status.HTTP_200_OK,
-#                 },
-#                 status=status.HTTP_200_OK,
-#             )
-#         except Exception as e:
-#             return Response(
-#                 {
-#                     "success": False,
-#                     "msg": "Logout failed. Invalid token.",
-#                     "status": status.HTTP_400_BAD_REQUEST,
-#                 },
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get("refresh")
+
+        if not refresh_token:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Refresh token is required",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Logout successfully",
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except TokenError as e:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Logout failed. Invalid token.",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "success": False,
+                    "msg": f"An error occurred: {str(e)}",
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

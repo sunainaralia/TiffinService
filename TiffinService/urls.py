@@ -11,5 +11,5 @@ class welcomeApi(APIView):
 urlpatterns = [
     path("", welcomeApi.as_view()),
     path("admin/", admin.site.urls),
-    path("v1/",include('v1.api.urls'))
+    path("v1/",include('v1.urls'))
 ]
