@@ -68,9 +68,10 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "facebook_link",
             "twitter_link",
             "instagram_link",
+            "tiffin_price",
         ]
 
- # oprating hours serializer
+# oprating hours serializer
 class OperatingHoursSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperatingHours

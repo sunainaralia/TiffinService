@@ -37,8 +37,9 @@ class UserAddress(models.Model):
     def __str__(self):
         return f"{self.title}: {self.street}, {self.city}, {self.state}, {self.country} - {self.pincode}"
 
-    # model for business profile class BusinessProfile(models.Model):
 
+
+# model for business profile 
 
 class BusinessProfile(models.Model):
     user = models.ForeignKey(
@@ -57,6 +58,7 @@ class BusinessProfile(models.Model):
     facebook_link = models.URLField(max_length=200, blank=True)
     twitter_link = models.URLField(max_length=200, blank=True)
     instagram_link = models.URLField(max_length=200, blank=True)
+    tiffin_price=models.CharField(max_length=100,null=True)
 
     def __str__(self):
         return f"{self.kitchenName} - {self.businessEmail}"

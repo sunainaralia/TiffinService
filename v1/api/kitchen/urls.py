@@ -2,22 +2,19 @@ from django.urls import path
 from .views import (
     MenuItemView,
     WeeklyPlanView,
-    CategoryItemView,
-    MealView,
-    DayPlanView,
     TodayMealView,
     DiscountView,
     ScheduleOrderView,
     SubscriptionView,
-    ExtraMealView
+    OrderView,
+    CheckDiscountEligibilityView,
+    CancellSubscriptionView,
+    CancelOrderView,
 )
 
 urlpatterns = [
     path("menu/", MenuItemView.as_view(), name="MenuItem"),
     path("menu/<pk>/", MenuItemView.as_view()),
-    path("category-item/", CategoryItemView.as_view(), name="category-item"),
-    path("meal/", MealView.as_view(), name="meal"),
-    path("day-plan/", DayPlanView.as_view(), name="day-plan"),
     path("weeklyplan/", WeeklyPlanView.as_view(), name="weeklyplan"),
     path("weeklyplan/<int:pk>/", WeeklyPlanView.as_view(), name="weeklyplan-detail"),
     path("today-meal/", TodayMealView.as_view(), name="today-meal"),
@@ -38,6 +35,25 @@ urlpatterns = [
     path(
         "subscription/<int:pk>/", SubscriptionView.as_view(), name="subscription-detail"
     ),
-    path("extra-meals/", ExtraMealView.as_view(), name="extra-meal-list-create"),
-    path("extra-meals/<int:pk>/", ExtraMealView.as_view(), name="extra-meal-detail"),
+    path("order/", OrderView.as_view(), name="order"),
+    path("order/<int:pk>/", OrderView.as_view(), name="order-detail"),
+    path(
+        "check-discount/",
+        CheckDiscountEligibilityView.as_view(),
+        name="CheckDiscountEligibility",
+    ),
+    path(
+        "cancel-subscriptions/",
+        CancellSubscriptionView.as_view(),
+        name="cancel_subscription_list_create",
+    ),
+    path(
+        "cancel-subscriptions/<int:pk>/",
+        CancellSubscriptionView.as_view(),
+        name="cancel_subscription_detail",
+    ),
+    path("cancel-orders/", CancelOrderView.as_view(), name="cancel_order_list_create"),
+    path(
+        "cancel-orders/<int:pk>/", CancelOrderView.as_view(), name="cancel_order_detail"
+    ),
 ]

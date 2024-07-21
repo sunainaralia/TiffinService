@@ -1,18 +1,19 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import MenuItem,WeeklyPlan,CategoryItem,DayPlan,Meal,TodayMeal,Discount,ScheduleOrder,Subscription,ExtraMeal
+from .models import MenuItem,WeeklyPlan,TodayMeal,Discount,ScheduleOrder,Subscription,Order,CancellSubscription,CancelOrder
 from .serializers import (
     MenuItemSerializer,
     WeeklyPlanSerializer,
-    CategoryItemSerializer,
-    MealSerializer,
-    DayPlanSerializer,
     TodayMealSerializer,
     DiscountSerializer,
     ScheduleOrderSerializer,
     SubscriptionSerializer,
-    ExtraMealSerializer
+    OrderSerializer,
+    CheckDiscountAvailabilitySerializer,
+    CancellSubscriptionSerializer,
+    CancelOrderSerializer
+
 )
 from ...customPermission import IsAuthenticatedOrAllowedGet
 
@@ -131,373 +132,6 @@ class MenuItemView(APIView):
                 {
                     "success": False,
                     "msg": "Menu item not found.",
-                    "status": status.HTTP_404_NOT_FOUND,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-
-# category items view
-class CategoryItemView(APIView):
-    permission_classes = [IsAuthenticatedOrAllowedGet]
-
-    def post(self, request, format=None):
-        serializer = CategoryItemSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Category item created successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_201_CREATED,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(
-            {
-                "success": False,
-                "msg": "Invalid data.",
-                "status": status.HTTP_400_BAD_REQUEST,
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def get(self, request, pk=None, format=None):
-        if pk:
-            try:
-                category_item = CategoryItem.objects.get(pk=pk)
-                serializer = CategoryItemSerializer(category_item)
-                return Response(
-                    {
-                        "success": True,
-                        "msg": "Category item retrieved successfully.",
-                        "data": serializer.data,
-                        "status": status.HTTP_200_OK,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            except CategoryItem.DoesNotExist:
-                return Response(
-                    {
-                        "success": False,
-                        "msg": "Category item not found.",
-                        "status": status.HTTP_404_NOT_FOUND,
-                    },
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        else:
-            category_items = CategoryItem.objects.all()
-            serializer = CategoryItemSerializer(category_items, many=True)
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Category items retrieved successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_200_OK,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-    def patch(self, request, pk, format=None):
-        try:
-            category_item = CategoryItem.objects.get(pk=pk)
-        except CategoryItem.DoesNotExist:
-            return Response(
-                {
-                    "success": False,
-                    "msg": "Category item not found.",
-                    "status": status.HTTP_404_NOT_FOUND,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = CategoryItemSerializer(
-            category_item, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Category item updated successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_200_OK,
-                },
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {
-                "success": False,
-                "msg": "Invalid data.",
-                "status": status.HTTP_400_BAD_REQUEST,
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def delete(self, request, pk, format=None):
-        try:
-            category_item = CategoryItem.objects.get(pk=pk)
-            category_item.delete()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Category item deleted successfully.",
-                    "status": status.HTTP_204_NO_CONTENT,
-                },
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        except CategoryItem.DoesNotExist:
-            return Response(
-                {
-                    "success": False,
-                    "msg": "Category item not found.",
-                    "status": status.HTTP_404_NOT_FOUND,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-
-# View for Meal
-class MealView(APIView):
-    permission_classes = [IsAuthenticatedOrAllowedGet]
-
-    def post(self, request, format=None):
-        serializer = MealSerializer(data=request.data)
-        if serializer.is_valid():
-            meal = serializer.save()
-            meal_serializer = MealSerializer(meal)
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Meal created successfully.",
-                    "data": meal_serializer.data,
-                    "status": status.HTTP_201_CREATED,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(
-            {
-                "success": False,
-                "msg": "Invalid data.",
-                "status": status.HTTP_400_BAD_REQUEST,
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def get(self, request, pk=None, format=None):
-        if pk:
-            try:
-                meal = Meal.objects.get(pk=pk)
-                serializer = MealSerializer(meal)
-                return Response(
-                    {
-                        "success": True,
-                        "msg": "Meal retrieved successfully.",
-                        "data": serializer.data,
-                        "status": status.HTTP_200_OK,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            except Meal.DoesNotExist:
-                return Response(
-                    {
-                        "success": False,
-                        "msg": "Meal not found.",
-                        "status": status.HTTP_404_NOT_FOUND,
-                    },
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        else:
-            meals = Meal.objects.all()
-            serializer = MealSerializer(meals, many=True)
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Meals retrieved successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_200_OK,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-    def patch(self, request, pk, format=None):
-        try:
-            meal = Meal.objects.get(pk=pk)
-        except Meal.DoesNotExist:
-            return Response(
-                {
-                    "success": False,
-                    "msg": "Meal not found.",
-                    "status": status.HTTP_404_NOT_FOUND,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = MealSerializer(meal, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Meal updated successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_200_OK,
-                },
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {
-                "success": False,
-                "msg": "Invalid data.",
-                "status": status.HTTP_400_BAD_REQUEST,
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def delete(self, request, pk, format=None):
-        try:
-            meal = Meal.objects.get(pk=pk)
-            meal.delete()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Meal deleted successfully.",
-                    "status": status.HTTP_204_NO_CONTENT,
-                },
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        except Meal.DoesNotExist:
-            return Response(
-                {
-                    "success": False,
-                    "msg": "Meal not found.",
-                    "status": status.HTTP_404_NOT_FOUND,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-
-# View for DayPlan
-class DayPlanView(APIView):
-    permission_classes = [IsAuthenticatedOrAllowedGet]
-
-    def post(self, request, format=None):
-        serializer = DayPlanSerializer(data=request.data)
-        if serializer.is_valid():
-            day_plan = serializer.save()
-            day_plan_serializer = DayPlanSerializer(day_plan)
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Day plan created successfully.",
-                    "data": day_plan_serializer.data,
-                    "status": status.HTTP_201_CREATED,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(
-            {
-                "success": False,
-                "msg": "Invalid data.",
-                "status": status.HTTP_400_BAD_REQUEST,
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def get(self, request, pk=None, format=None):
-        if pk:
-            try:
-                day_plan = DayPlan.objects.get(pk=pk)
-                serializer = DayPlanSerializer(day_plan)
-                return Response(
-                    {
-                        "success": True,
-                        "msg": "Day plan retrieved successfully.",
-                        "data": serializer.data,
-                        "status": status.HTTP_200_OK,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            except DayPlan.DoesNotExist:
-                return Response(
-                    {
-                        "success": False,
-                        "msg": "Day plan not found.",
-                        "status": status.HTTP_404_NOT_FOUND,
-                    },
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        else:
-            day_plans = DayPlan.objects.all()
-            serializer = DayPlanSerializer(day_plans, many=True)
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Day plans retrieved successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_200_OK,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-    def patch(self, request, pk, format=None):
-        try:
-            day_plan = DayPlan.objects.get(pk=pk)
-        except DayPlan.DoesNotExist:
-            return Response(
-                {
-                    "success": False,
-                    "msg": "Day plan not found.",
-                    "status": status.HTTP_404_NOT_FOUND,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = DayPlanSerializer(day_plan, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Day plan updated successfully.",
-                    "data": serializer.data,
-                    "status": status.HTTP_200_OK,
-                },
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {
-                "success": False,
-                "msg": "Invalid data.",
-                "status": status.HTTP_400_BAD_REQUEST,
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def delete(self, request, pk, format=None):
-        try:
-            day_plan = DayPlan.objects.get(pk=pk)
-            day_plan.delete()
-            return Response(
-                {
-                    "success": True,
-                    "msg": "Day plan deleted successfully.",
-                    "status": status.HTTP_204_NO_CONTENT,
-                },
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        except DayPlan.DoesNotExist:
-            return Response(
-                {
-                    "success": False,
-                    "msg": "Day plan not found.",
                     "status": status.HTTP_404_NOT_FOUND,
                 },
                 status=status.HTTP_404_NOT_FOUND,
@@ -1103,16 +737,47 @@ class SubscriptionView(APIView):
         )
 
 
-# view for extra meal
-class ExtraMealView(APIView):
+# view for order
+class OrderView(APIView):
+
     def post(self, request, format=None):
-        serializer = ExtraMealSerializer(data=request.data)
+        # Fetch the schedule data using the provided ID
+        schedule_id = request.data.get("schedule")
+        if not schedule_id:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Schedule ID is required.",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            schedule = ScheduleOrder.objects.get(id=schedule_id)
+        except ScheduleOrder.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Schedule not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Serialize the schedule data
+        schedule_serializer = ScheduleOrderSerializer(schedule)
+        schedule_data = schedule_serializer.data
+
+        serializer_context = {"schedule": schedule_data}
+        serializer = OrderSerializer(data=request.data, context=serializer_context)
+
         if serializer.is_valid():
             serializer.save()
             return Response(
                 {
                     "success": True,
-                    "msg": "Extra meal created successfully.",
+                    "msg": "Order created successfully.",
                     "data": serializer.data,
                     "status": status.HTTP_201_CREATED,
                 },
@@ -1131,8 +796,8 @@ class ExtraMealView(APIView):
     def get(self, request, pk=None, format=None):
         if pk:
             try:
-                extra_meal = ExtraMeal.objects.get(pk=pk)
-                serializer = ExtraMealSerializer(extra_meal)
+                order = Order.objects.get(pk=pk)
+                serializer = OrderSerializer(order)
                 return Response(
                     {
                         "success": True,
@@ -1141,18 +806,18 @@ class ExtraMealView(APIView):
                     },
                     status=status.HTTP_200_OK,
                 )
-            except ExtraMeal.DoesNotExist:
+            except Order.DoesNotExist:
                 return Response(
                     {
                         "success": False,
-                        "msg": "Extra meal not found.",
+                        "msg": "Order not found.",
                         "status": status.HTTP_404_NOT_FOUND,
                     },
                     status=status.HTTP_404_NOT_FOUND,
                 )
         else:
-            extra_meals = ExtraMeal.objects.all()
-            serializer = ExtraMealSerializer(extra_meals, many=True)
+            orders = Order.objects.all()
+            serializer = OrderSerializer(orders, many=True)
             return Response(
                 {
                     "success": True,
@@ -1164,24 +829,24 @@ class ExtraMealView(APIView):
 
     def patch(self, request, pk, format=None):
         try:
-            extra_meal = ExtraMeal.objects.get(pk=pk)
-        except ExtraMeal.DoesNotExist:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
             return Response(
                 {
                     "success": False,
-                    "msg": "Extra meal not found.",
+                    "msg": "Order not found.",
                     "status": status.HTTP_404_NOT_FOUND,
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ExtraMealSerializer(extra_meal, data=request.data, partial=True)
+        serializer = OrderSerializer(order, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(
                 {
                     "success": True,
-                    "msg": "Extra meal updated successfully.",
+                    "msg": "Order updated successfully.",
                     "data": serializer.data,
                     "status": status.HTTP_200_OK,
                 },
@@ -1199,22 +864,293 @@ class ExtraMealView(APIView):
 
     def delete(self, request, pk, format=None):
         try:
-            extra_meal = ExtraMeal.objects.get(pk=pk)
-        except ExtraMeal.DoesNotExist:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
             return Response(
                 {
                     "success": False,
-                    "msg": "Extra meal not found.",
+                    "msg": "Order not found.",
                     "status": status.HTTP_404_NOT_FOUND,
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        extra_meal.delete()
+        order.delete()
         return Response(
             {
                 "success": True,
-                "msg": "Extra meal deleted successfully.",
+                "msg": "Order deleted successfully.",
+                "status": status.HTTP_204_NO_CONTENT,
+            },
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+# check is discount is eligible
+class CheckDiscountEligibilityView(APIView):
+    def post(self, request, format=None):
+        serializer = CheckDiscountAvailabilitySerializer(data=request.data)
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            discount_serializer = DiscountSerializer(validated_data.get("discount"))
+            response_data = (
+                discount_serializer.data if validated_data.get("discount") else {}
+            )
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Discount check completed successfully.",
+                    "data": response_data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+# cancel subscription
+
+class CancellSubscriptionView(APIView):
+    def post(self, request, format=None):
+        serializer = CancellSubscriptionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Cancellation subscription created successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_201_CREATED,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def get(self, request, pk=None, format=None):
+        if pk:
+            try:
+                cancell_subscription = CancellSubscription.objects.get(pk=pk)
+                serializer = CancellSubscriptionSerializer(cancell_subscription)
+                return Response(
+                    {
+                        "success": True,
+                        "data": serializer.data,
+                        "status": status.HTTP_200_OK,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except CancellSubscription.DoesNotExist:
+                return Response(
+                    {
+                        "success": False,
+                        "msg": "Cancellation subscription not found.",
+                        "status": status.HTTP_404_NOT_FOUND,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            cancell_subscriptions = CancellSubscription.objects.all()
+            serializer = CancellSubscriptionSerializer(cancell_subscriptions, many=True)
+            return Response(
+                {
+                    "success": True,
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+    def patch(self, request, pk, format=None):
+        try:
+            cancell_subscription = CancellSubscription.objects.get(pk=pk)
+        except CancellSubscription.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Cancellation subscription not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = CancellSubscriptionSerializer(
+            cancell_subscription, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Cancellation subscription updated successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, pk, format=None):
+        try:
+            cancell_subscription = CancellSubscription.objects.get(pk=pk)
+        except CancellSubscription.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Cancellation subscription not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        cancell_subscription.delete()
+        return Response(
+            {
+                "success": True,
+                "msg": "Cancellation subscription deleted successfully.",
+                "status": status.HTTP_204_NO_CONTENT,
+            },
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+# cancel order views
+class CancelOrderView(APIView):
+    def post(self, request, format=None):
+        serializer = CancelOrderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Cancel order created successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_201_CREATED,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def get(self, request, pk=None, format=None):
+        if pk:
+            try:
+                cancel_order = CancelOrder.objects.get(pk=pk)
+                serializer = CancelOrderSerializer(cancel_order)
+                return Response(
+                    {
+                        "success": True,
+                        "data": serializer.data,
+                        "status": status.HTTP_200_OK,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except CancelOrder.DoesNotExist:
+                return Response(
+                    {
+                        "success": False,
+                        "msg": "Cancel order not found.",
+                        "status": status.HTTP_404_NOT_FOUND,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            cancel_orders = CancelOrder.objects.all()
+            serializer = CancelOrderSerializer(cancel_orders, many=True)
+            return Response(
+                {
+                    "success": True,
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+    def patch(self, request, pk, format=None):
+        try:
+            cancel_order = CancelOrder.objects.get(pk=pk)
+        except CancelOrder.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Cancel order not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = CancelOrderSerializer(
+            cancel_order, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "msg": "Cancel order updated successfully.",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {
+                "success": False,
+                "msg": "Invalid data.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, pk, format=None):
+        try:
+            cancel_order = CancelOrder.objects.get(pk=pk)
+        except CancelOrder.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "msg": "Cancel order not found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        cancel_order.delete()
+        return Response(
+            {
+                "success": True,
+                "msg": "Cancel order deleted successfully.",
                 "status": status.HTTP_204_NO_CONTENT,
             },
             status=status.HTTP_204_NO_CONTENT,

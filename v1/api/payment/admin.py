@@ -10,7 +10,7 @@ class PaymentAdmin(admin.ModelAdmin):
         "payment_status",
         "created_at",
         "updated_at",
-        "order",
         "user",
+        "kitchen",
     ]
 admin.site.register(Payment,PaymentAdmin)

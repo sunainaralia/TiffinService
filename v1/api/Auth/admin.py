@@ -61,6 +61,7 @@ class BusinessProfileAdmin(admin.ModelAdmin):
         "facebook_link",
         "twitter_link",
         "instagram_link",
+        "tiffin_price",
     ]
 
 

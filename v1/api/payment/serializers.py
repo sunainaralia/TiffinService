@@ -10,6 +10,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             "payment_status",
             "created_at",
             "updated_at",
-            "order",
             "user",
+            "kitchen",
         ]

@@ -8,6 +8,8 @@ import random
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from ...customPermission import IsAuthenticatedOrAllowedGet
+from django.shortcuts import get_object_or_404
+
 # genrate token manually
 def get_token_for_user(user_profile):
     refresh = RefreshToken()
@@ -18,6 +20,32 @@ def get_token_for_user(user_profile):
 
 # UserProfile view
 class UserProfileView(APIView):
+    def get(self, request, pk=None, format=None):
+        if pk:
+            user = get_object_or_404(UserProfile, id=pk)
+            serializer = UserProfileSerializer(user)
+            return Response(
+                {
+                    "success": True,
+                    "msg": "user profile retrieved successfully",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            users = UserProfile.objects.all()
+            serializer = UserProfileSerializer(users, many=True)
+            return Response(
+                {
+                    "success": True,
+                    "msg": "all user profiles retrieved successfully",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
+                },
+                status=status.HTTP_200_OK,
+            )
+
     def post(self, request, format=None):
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
@@ -33,15 +61,49 @@ class UserProfileView(APIView):
                 },
                 status=status.HTTP_201_CREATED,
             )
-        else:
+        return Response(
+            {
+                "success": False,
+                "msg": serializer.errors,
+                "status": status.HTTP_400_BAD_REQUEST,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def patch(self, request, pk=None, format=None):
+        user = get_object_or_404(UserProfile, id=pk)
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
             return Response(
                 {
-                    "success": False,
-                    "msg": serializer.errors,
-                    "status": status.HTTP_400_BAD_REQUEST,
+                    "success": True,
+                    "msg": "user profile updated successfully",
+                    "data": serializer.data,
+                    "status": status.HTTP_200_OK,
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_200_OK,
             )
+        return Response(
+            {
+                "success": False,
+                "msg": serializer.errors,
+                "status": status.HTTP_400_BAD_REQUEST,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, pk=None, format=None):
+        user = get_object_or_404(UserProfile, id=pk)
+        user.delete()
+        return Response(
+            {
+                "success": True,
+                "msg": "user profile deleted successfully",
+                "status": status.HTTP_204_NO_CONTENT,
+            },
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
 
 # api for send otp using mobile no
