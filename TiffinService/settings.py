@@ -86,7 +86,7 @@ DATABASES = {
         "NAME": "tiffin",
         "USER": "sunaina",
         "PASSWORD": "sunaina",
-        "HOST": "8000",
+        "HOST": "postgresql://sunaina:dJLndR4MPT4Nw0wsUrj0E6Zg2iIPIvfy@dpg-cqf7dc9u0jms739qone0-a.frankfurt-postgres.render.com/tiffin",
         "PORT": "5432",
         "OPTIONS": {"options": "-c search_path=newschema,public"},
     }
